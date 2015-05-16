@@ -1,46 +1,69 @@
 class SimpleValidation
-  def check_hash_keys(hash, keys)
+  def check_hash(hash, constraints)
     raise ArgumentError unless hash.is_a?(Hash)
-    check_keys(keys)
+    check_hash_constraints(constraints)
 
     unknown = []
     missing = []
+    invalid = []
+
+    constraints[:required].each do |constraint|
+      if hash.has_key?(constraint[:key])
+        if !hash[constraint[:key]].is_a?(constraint[:type])
+          invalid << constraint[:key]
+        end
+      else
+        missing << constraint[:key]
+      end
+    end
 
     hash.each_key do |key|
-      if !keys[:required].include?(key) && !keys[:optional].include?(key)
+      required = constraints[:required].any? { |constraint| key == constraint[:key] }
+      optional = constraints[:optional].any? { |constraint| key == constraint[:key] }
+
+      if !required && !optional
         unknown << key
       end
     end
 
-    keys[:required].each do |key|
-      if !hash.include?(key)
-        missing << key
-      end
-    end
-
-    if !unknown.empty? && !missing.empty?
+    case
+    when !invalid.empty? && !unknown.empty? && !missing.empty?
+      { :invalid => invalid, :unknown => unknown, :missing => missing }
+    when !invalid.empty? && !unknown.empty?
+      { :invalid => invalid, :unknown => unknown }
+    when !invalid.empty? && !missing.empty?
+      { :invalid => invalid, :missing => missing }
+    when !unknown.empty? && !missing.empty?
       { :unknown => unknown, :missing => missing }
-    elsif !unknown.empty?
+    when !unknown.empty?
       { :unknown => unknown }
-    elsif !missing.empty?
+    when !missing.empty?
       { :missing => missing }
+    when !invalid.empty?
+      { :invalid => invalid }
     end
   end
 
   private
-  def check_keys(keys)
-    raise ArgumentError unless keys.is_a?(Hash)
+  def check_hash_constraints(constraints)
+    raise ArgumentError unless constraints.is_a?(Hash)
 
-    constraints = [:required, :optional]
+    allowed = [:required, :optional]
 
-    keys.each_key do |key|
-      raise ArgumentError unless constraints.include?(key)
-      raise TypeError unless keys[key].is_a?(Array)
+    constraints.each_key do |key|
+      raise ArgumentError unless allowed.include?(key)
+      raise TypeError unless constraints[key].is_a?(Array)
+
+      constraints[key].each do |constraint|
+        raise ArgumentError unless constraint.has_key?(:key) && constraint.has_key?(:type)
+        raise TypeError unless constraint[:key].is_a?(Symbol)
+        raise TypeError unless constraint[:type].is_a?(Class)
+      end
     end
 
-    constraints.each do |constraint|
-      if !keys.has_key?(constraint)
-        keys[constraint] = []
+    allowed.each do |constraint|
+      if !constraints.has_key?(constraint)
+        constraints[constraint] = []
       end
     end
   end
