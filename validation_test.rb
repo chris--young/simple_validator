@@ -1,9 +1,9 @@
-require_relative "simple_validation"
+require_relative "validation"
 require "test/unit"
 
-$validator = SimpleValidation.new
+$validator = Validation.new
 
-class SimpleValidationTest < Test::Unit::TestCase
+class ValidationTest < Test::Unit::TestCase
   def test0
     hash = { :a => 97 }
     keys = { :required => [{ :key => :a, :type => Integer }] }
@@ -104,5 +104,14 @@ class SimpleValidationTest < Test::Unit::TestCase
 
     assert_equal(error, $validator.check_hash(hash, constraints))
   end
+
+  def test12
+    error = nil
+    hash = { :a => 97, :b => "98"}
+    constraints = { :required => [{ :key => :a, :type => Integer }, { :key => :b, :type => Integer }] }
+
+    assert_equal(error, $validator.check_hash(hash, constraints, true))
+  end
+    
 end
 

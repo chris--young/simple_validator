@@ -1,5 +1,5 @@
-class SimpleValidation
-  def check_hash(hash, constraints)
+class Validation
+  def check_hash(hash, constraints, cast=false)
     raise ArgumentError unless hash.is_a?(Hash)
     check_hash_constraints(constraints)
 
@@ -9,7 +9,11 @@ class SimpleValidation
 
     constraints[:required].each do |constraint|
       if hash.has_key?(constraint[:key])
-        if !hash[constraint[:key]].is_a?(constraint[:type])
+        if cast
+          if check_cast(hash[constraint[:key]], constraint[:type])
+            invalid << constraint[:key]
+          end
+        elsif !hash[constraint[:key]].is_a?(constraint[:type])
           invalid << constraint[:key]
         end
       else
@@ -18,8 +22,8 @@ class SimpleValidation
     end
 
     hash.each_key do |key|
-      required = constraints[:required].any? { |constraint| key == constraint[:key] }
-      optional = constraints[:optional].any? { |constraint| key == constraint[:key] }
+      required = constraints[:required].any? { |constraint| key.to_sym == constraint[:key] }
+      optional = constraints[:optional].any? { |constraint| key.to_sym == constraint[:key] }
 
       if !required && !optional
         unknown << key
@@ -64,6 +68,20 @@ class SimpleValidation
     allowed.each do |constraint|
       if !constraints.has_key?(constraint)
         constraints[constraint] = []
+      end
+    end
+  end
+
+  private
+  def check_cast(value, type)
+    if !value.is_a?(type)
+      case
+      when type == Integer
+        !value.to_i
+      when type == String
+        !value.to_s
+      else
+        raise ArgumentError
       end
     end
   end
