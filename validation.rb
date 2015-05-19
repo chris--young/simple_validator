@@ -76,6 +76,12 @@ class Validation
   def check_cast(value, type)
     if !value.is_a?(type)
       case
+      when type == Date
+        begin
+          !Date.parse(value)
+        rescue
+          return true
+        end
       when type == Integer
         !value.to_i
       when type == String

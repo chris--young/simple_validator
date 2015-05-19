@@ -1,5 +1,6 @@
 require_relative "validation"
 require "test/unit"
+require "date"
 
 $validator = Validation.new
 
@@ -109,6 +110,22 @@ class ValidationTest < Test::Unit::TestCase
     error = nil
     hash = { :a => 97, :b => "98"}
     constraints = { :required => [{ :key => :a, :type => Integer }, { :key => :b, :type => Integer }] }
+
+    assert_equal(error, $validator.check_hash(hash, constraints, true))
+  end
+
+  def test13
+    error = nil
+    hash = { :a => 97, :b => "2015-05-17"}
+    constraints = { :required => [{ :key => :a, :type => Integer }, { :key => :b, :type => Date }] }
+
+    assert_equal(error, $validator.check_hash(hash, constraints, true))
+  end
+
+  def test14
+    error = { :invalid => [:b] }
+    hash = { :a => 97, :b => "2015-17-05"}
+    constraints = { :required => [{ :key => :a, :type => Integer }, { :key => :b, :type => Date }] }
 
     assert_equal(error, $validator.check_hash(hash, constraints, true))
   end
