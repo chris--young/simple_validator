@@ -1,4 +1,4 @@
-class Validation
+class SimpleValidator
   def check_hash(hash, constraints, cast=false)
     raise ArgumentError unless hash.is_a?(Hash)
     check_hash_constraints(constraints)

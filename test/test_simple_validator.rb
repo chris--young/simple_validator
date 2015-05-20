@@ -1,10 +1,10 @@
-require_relative "validation"
+require_relative "../lib/simple_validator"
 require "test/unit"
 require "date"
 
-$validator = Validation.new
+$validator = SimpleValidator.new
 
-class ValidationTest < Test::Unit::TestCase
+class TestSimpleValidator < Test::Unit::TestCase
   def test0
     hash = { :a => 97 }
     keys = { :required => [{ :key => :a, :type => Integer }] }
